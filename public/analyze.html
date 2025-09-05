@@ -242,50 +242,36 @@
                 return;
             }
         
-            // Pick random disease (for now, same as your mock)
-            const mockResponses = [
-                { disease: "Powdery Mildew", treatment: "Apply fungicide and improve air circulation." },
-                { disease: "Root Rot", treatment: "Reduce watering and improve soil drainage." },
-                { disease: "Leaf Spot", treatment: "Remove affected leaves and apply a fungicide." },
-                { disease: "Rust", treatment: "Use a fungicide and remove affected leaves." },
-                { disease: "Blight", treatment: "Remove infected parts and apply a bactericide." },
-                { disease: "Mosaic Virus", treatment: "Remove infected plants and control insect vectors." },
-                { disease: "Downy Mildew", treatment: "Use a fungicide and improve air circulation." },
-                { disease: "Anthracnose", treatment: "Remove infected parts and use a fungicide." }
-            ];
-        
             resultText.textContent = 'Analyzing...';
         
-            setTimeout(async () => {
-                const randomIndex = Math.floor(Math.random() * mockResponses.length);
-                const response = mockResponses[randomIndex];
-                const fileName = fileInput.files[0].name;
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
         
-                // ✅ Save analysis to backend (Flask + MongoDB)
-                const res = await fetch("http://127.0.0.1:5000/api/analyze", {
+            try {
+                const res = await fetch("http://127.0.0.1:5000/api/predict", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        userId: "IH2005",   // you can replace with actual logged-in userId
-                        imageUrl: fileName, // just store file name for now
-                        disease: response.disease,
-                        treatment: response.treatment
-                    })
+                    body: formData
                 });
+        
+                if (!res.ok) {
+                    throw new Error("Failed to analyze image.");
+                }
         
                 const data = await res.json();
         
-                // ✅ Show result on page
                 resultText.innerHTML = `
                     <b>Analysis Complete:</b><br>
-                    File Name: ${fileName}<br>
-                    Detected Disease: <b>${response.disease}</b><br>
-                    Suggested Treatment: ${response.treatment}<br>
-                    <i>${data.message}</i>
+                    File Name: ${fileInput.files[0].name}<br>
+                    Detected Disease: <b>${data.label}</b><br>
+                    Confidence: ${(data.confidence * 100).toFixed(2)}%<br>
                 `;
-            }, 2000); // Simulated delay
+            } catch (err) {
+                console.error(err);
+                resultText.textContent = "Error analyzing image.";
+            }
         }
         </script>
+        
         <script>
             // ✅ Protect page
     const email = localStorage.getItem("userEmail");

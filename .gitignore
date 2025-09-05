@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+ENV/
+
+# Datasets & large files
+*.jpg
+*.png
+*.jpeg
+*.csv
+*.zip
+*.pth
+dataset/
+data/
+model/
+
+# OS / editor files
+.DS_Store
+Thumbs.db

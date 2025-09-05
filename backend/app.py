@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
 import os
+from model import predict_pil   # <-- add this
+from PIL import Image
+
 
 app = Flask(__name__)
 CORS(app)
@@ -104,6 +107,24 @@ def settings(email):
         settings_col.update_one({"email": email}, {"$set": data}, upsert=True)
         return jsonify({"message": "Settings saved successfully"})
 
+# -------------------------
+# ML MODEL PREDICTION
+# -------------------------
+@app.route("/api/predict", methods=["POST"])
+def predict():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+
+    try:
+        img = Image.open(file.stream)
+        result = predict_pil(img)   # call model.py
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 # -------------------------
 # FRONTEND ROUTES
@@ -112,6 +133,11 @@ def settings(email):
 @app.route("/<path:path>")
 def serve_frontend(path):
     return send_from_directory(PUBLIC_DIR, path)
+
+# -------------------------
+# ML MODEL PREDICTION
+
+
 
 
 if __name__ == "__main__":
